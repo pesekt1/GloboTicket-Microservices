@@ -55,7 +55,7 @@ If you are using a local MSSQL Server then you need to update your connection st
 ```json
 {
   "ConnectionStrings": {
-    "PromotionContext": "Server=localhost\SQLEXPRESS;Database=PromotionContext;Trusted_Connection=True;MultipleActiveResultSets=true"
+    "PromotionContext": "Server=localhost\\SQLEXPRESS;Database=PromotionContext;Trusted_Connection=True;MultipleActiveResultSets=true"
   }
 }
 ```
