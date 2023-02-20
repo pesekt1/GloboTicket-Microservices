@@ -1,0 +1,70 @@
+﻿@page
+@model GloboTicket.WebSales.Pages.PurchaseTicketModel
+@{
+}
+<div class="purchaseContainer">
+    <div class="actImage">
+        <img src="~/images/dj.jpg" />
+    </div>
+    <div class="showDescription">
+        <p class="category">CONCERTS</p>
+        <h1>Alexander Lemtov Live</h1>
+        <h2>Alexander Lemtov</h2>
+        <p class="date">1/21/2021</p>
+        <p>Join Alexander for his global tour. Alexander really needs no introduction since he has already mesmerized the world with his electronic ambient sound.</p>
+    </div>
+    <div class="ticketPrice">
+        <span class="price">$65</span>
+        <span class="unit">PER TICKET</span>
+    </div>
+    <div class="separator">
+        <hr />
+    </div>
+    <div class="orderForm">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Purchase.Quantity" class="control-label"></label>
+                <input asp-for="Purchase.Quantity" class="form-control" />
+                <span asp-validation-for="Purchase.Quantity" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Purchase.CreditCardNumber" class="control-label"></label>
+                <input asp-for="Purchase.CreditCardNumber" class="form-control" />
+                <span asp-validation-for="Purchase.CreditCardNumber" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Purchase.NameOnCard" class="control-label"></label>
+                <input asp-for="Purchase.NameOnCard" class="form-control" />
+                <span asp-validation-for="Purchase.NameOnCard" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Purchase.VerificationCode" class="control-label"></label>
+                <input asp-for="Purchase.VerificationCode" class="form-control" />
+                <span asp-validation-for="Purchase.VerificationCode" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Purchase.ExpirationMonth" class="control-label"></label>
+                <input asp-for="Purchase.ExpirationMonth" class="form-control" />
+                <span asp-validation-for="Purchase.ExpirationMonth" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Purchase.ExpirationYear" class="control-label"></label>
+                <input asp-for="Purchase.ExpirationYear" class="form-control" />
+                <span asp-validation-for="Purchase.ExpirationYear" class="text-danger"></span>
+            </div>
+            <input asp-for="Offer.offerGuid" type="hidden" />
+            <input asp-for="Offer.actGuid" type="hidden" />
+            <input asp-for="Offer.venueGuid" type="hidden" />
+            <input asp-for="Offer.startTime" type="hidden" />
+            <input asp-for="Offer.createdDate" type="hidden" />
+            <input asp-for="Offer.unitPrice" type="hidden" />
+            <input asp-for="Offer.minimumQuantity" type="hidden" />
+            <input asp-for="Offer.maximumQuantity" type="hidden" />
+            <input asp-for="Offer.expirationDate" type="hidden" />
+            <div class="form-group">
+                <input type="submit" value="PLACE ORDER" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
