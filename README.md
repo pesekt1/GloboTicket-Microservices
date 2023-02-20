@@ -27,11 +27,16 @@ docker run -d -p 9200:9200 -e "discovery.type=single-node" \
 -v esdata:/usr/share/elasticsearch/data \
 docker.elastic.co/elasticsearch/elasticsearch:7.9.3
 ```
+You can access it in the browser: http://localhost:9200
+
+You can also get a chrome extension: https://chrome.google.com/webstore/detail/elasticvue/hkedbapjpblbodpgbajblpnlpenaebaa?hl=en
 
 ### Run RabbitMQ container:
 ```
 docker run -p 15672:15672 -p 5672:5672 masstransit/rabbitmq
 ```
+You can access it in the browser: http://localhost:15672/
+
 
 ### Run MSSQL Server container (with volumes to persist data):
 ```
@@ -75,6 +80,8 @@ Use the following command:
 ```bash
 dotnet ef database update --project GloboTicket.Promotion/
 ```
+
+![Promotion Database](PromotionDatabase.png)
 
 ## Running the Promotion Web Application
 
