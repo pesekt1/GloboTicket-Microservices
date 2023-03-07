@@ -33,10 +33,10 @@ steps:
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
 
-- task: NuGetCommand@2
+- task: DotNetCoreCLI@2
   displayName: "Package Messages project"
   inputs:
-    command: 'dotnet pack'
+    command: 'pack'
     packagesToPack: 'Sales/**/*.Messages.csproj'
     versioningScheme: 'off'
 
