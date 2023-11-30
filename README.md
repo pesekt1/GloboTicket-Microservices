@@ -47,6 +47,7 @@ docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=Pass@word1' -p 1433:1433 `
 
 ### Alternatively, create a script and execute it
 docker-scripts.ps1
+
 copy the 3 docker run commands here
 
 execute in powershell:
@@ -74,11 +75,11 @@ If you are using a local MSSQL Server then you need to update your connection st
 
 ## Creating the Database (Promotion microservice)
 
-Install the EF command-line tools in order to work with the application database.
+Install the EF command-line tools in order to work with the application database. NOTE: we need version 5 compatible with .NET 5.
 Run this command:
 
 ```bash
-dotnet tool install --global dotnet-ef
+dotnet tool install --global dotnet-ef --version 5.0.0
 ```
 
 Initialize the application database by running migrations.
