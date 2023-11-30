@@ -23,8 +23,8 @@ docker pull docker.elastic.co/elasticsearch/elasticsearch:7.9.3
 
 ### Run Elasticsearch container (with volumes to persist data):
 ```
-docker run -d -p 9200:9200 -e "discovery.type=single-node" \
--v esdata:/usr/share/elasticsearch/data \
+docker run -d -p 9200:9200 -e "discovery.type=single-node" `
+-v esdata:/usr/share/elasticsearch/data `
 docker.elastic.co/elasticsearch/elasticsearch:7.9.3
 ```
 You can access it in the browser: http://localhost:9200
@@ -33,17 +33,24 @@ You can also get a chrome extension: https://chrome.google.com/webstore/detail/e
 
 ### Run RabbitMQ container:
 ```
-docker run -p 15672:15672 -p 5672:5672 masstransit/rabbitmq
+docker run -d -p 15672:15672 -p 5672:5672 masstransit/rabbitmq
 ```
 You can access it in the browser: http://localhost:15672/
 
 
 ### Run MSSQL Server container (with volumes to persist data):
 ```
-docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=Pass@word1' -p 1433:1433 \
--v sqlvolume:/var/opt/mssql \
+docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=Pass@word1' -p 1433:1433 `
+-v sqlvolume:/var/opt/mssql `
 -d mcr.microsoft.com/mssql/server:2019-latest
 ```
+
+### Alternatively, create a script and execute it
+docker-scripts.ps1
+copy the 3 docker run commands here
+
+execute in powershell:
+./docker-scripts.ps1
 
 ## Database connection string (Promotion microservice)
 ```json
