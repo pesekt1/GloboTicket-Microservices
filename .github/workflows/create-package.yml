@@ -1,0 +1,64 @@
+name: Manual Build and Package Sales
+
+on:
+  workflow_dispatch:   # <-- Only runs manually
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Install NuGet
+      uses: NuGet/setup-nuget@v1
+
+    - name: Restore NuGet Packages
+      run: nuget restore **/Sales.sln
+
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v1.3
+
+    - name: Build Solution
+      run: |
+        msbuild **/Sales.sln ^
+          /p:Configuration=Release ^
+          /p:Platform="Any CPU" ^
+          /p:DeployOnBuild=true ^
+          /p:WebPublishMethod=Package ^
+          /p:PackageAsSingleFile=true ^
+          /p:SkipInvalidConfigurations=true ^
+          /p:PackageLocation="$(Build.ArtifactStagingDirectory)"
+
+    - name: Run Tests
+      uses: microsoft/vstest-action@v1
+      with:
+        testAssembly: '**\*test*.dll'
+
+    - name: Pack Messages Project
+      run: |
+        dotnet pack "Sales/**/*.Messages.csproj" --no-build --configuration Release
+
+    - name: Upload NuGet Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: drop
+        path: "**/*.nupkg"
+
+    # PAT feed authentication
+    - name: Add Azure Artifacts Source
+      run: |
+        nuget sources Add ^
+          -Name "SalesFeed" ^
+          -Source "https://pkgs.dev.azure.com/TOMP0700/_packaging/GloboTicket/SalesFeed/nuget/v3/index.json" ^
+          -Username "any" ^
+          -Password "${{ secrets.AZURE_DEVOPS_PAT }}" ^
+          -StorePasswordInClearText
+
+    - name: Push NuGet Packages
+      run: |
+        nuget push "**/*.nupkg" ^
+          -Source "SalesFeed" ^
+          -SkipDuplicate ^
+          -ApiKey "not_needed"
