@@ -1,7 +1,7 @@
 ﻿name: Manual Build and Package Sales Messages
 
 on:
-  workflow_dispatch:   # run manually only
+  workflow_dispatch:   # manual only
 
 jobs:
   build:
@@ -28,7 +28,7 @@ jobs:
         name: drop
         path: ./nupkgs/*.nupkg
 
-    # 5️⃣ Add Azure Artifacts source using PAT (PowerShell safe)
+    # 5️⃣ Add Azure Artifacts source using PAT (PowerShell-safe)
     - name: Add Azure Artifacts Source
       run: |
         nuget sources Add -Name "SalesFeed" `
@@ -37,10 +37,17 @@ jobs:
           -Password "${{ secrets.AZURE_DEVOPS_PAT }}" `
           -StorePasswordInClearText
 
-    # 6️⃣ Push NuGet package to Azure Artifacts
-    - name: Push NuGet Packages
+    # 6️⃣ Push NuGet package dynamically
+    - name: Push NuGet Package
       run: |
-        nuget push "./nupkgs/*.nupkg" `
-          -Source "SalesFeed" `
-          -SkipDuplicate `
-          -ApiKey "not_needed"
+        $pkg = Get-ChildItem ./nupkgs/*.nupkg | Select-Object -First 1
+        if (-not $pkg) {
+          Write-Error "No .nupkg file found in ./nupkgs"
+        }
+        else {
+          Write-Host "Pushing $($pkg.FullName) to Azure Artifacts..."
+          nuget push $pkg.FullName `
+            -Source "SalesFeed" `
+            -SkipDuplicate `
+            -ApiKey "not_needed"
+        }
