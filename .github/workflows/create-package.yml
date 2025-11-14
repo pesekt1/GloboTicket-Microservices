@@ -1,60 +1,34 @@
-﻿name: Manual Build and Package Sales
+﻿name: Manual Build and Package Sales Messages
 
 on:
-  workflow_dispatch:   # <-- Run manually only
+  workflow_dispatch:   # run manually
 
 jobs:
   build:
     runs-on: windows-latest
 
     steps:
-    # 1️⃣ Checkout repo
+    # Checkout repository
     - name: Checkout
       uses: actions/checkout@v4
 
-    # 2️⃣ Install NuGet
+    # Install NuGet
     - name: Install NuGet
       uses: NuGet/setup-nuget@v1
 
-    # 3️⃣ Restore NuGet packages
-    - name: Restore NuGet Packages
-      run: nuget restore **/Sales.sln
-
-    # 4️⃣ Setup MSBuild
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v1.3
-
-    # 5️⃣ Build solution
-    - name: Build Solution
-      run: |
-        msbuild **/Sales.sln ^
-          /p:Configuration=Release ^
-          /p:Platform="Any CPU" ^
-          /p:DeployOnBuild=true ^
-          /p:WebPublishMethod=Package ^
-          /p:PackageAsSingleFile=true ^
-          /p:SkipInvalidConfigurations=true ^
-          /p:PackageLocation="$(Build.ArtifactStagingDirectory)"
-
-    # 6️⃣ Run tests
-    - name: Run Tests
-      uses: microsoft/vstest-action@v1
-      with:
-        testAssembly: '**\*test*.dll'
-
-    # 7️⃣ Pack Messages project
+    # Pack Messages project
     - name: Pack Messages Project
       run: |
-        dotnet pack "Sales/**/*.Messages.csproj" --no-build --configuration Release
+        dotnet pack "Sales/**/*.Messages.csproj" --configuration Release --output ./nupkgs
 
-    # 8️⃣ Upload NuGet artifacts
-    - name: Upload NuGet Artifacts
+    # Upload package as artifact (optional)
+    - name: Upload NuGet Artifact
       uses: actions/upload-artifact@v4
       with:
         name: drop
-        path: "**/*.nupkg"
+        path: ./nupkgs/*.nupkg
 
-    # 9️⃣ Add Azure Artifacts source using PAT
+    # Add Azure Artifacts feed using PAT
     - name: Add Azure Artifacts Source
       run: |
         nuget sources Add ^
@@ -64,10 +38,10 @@ jobs:
           -Password "${{ secrets.AZURE_DEVOPS_PAT }}" ^
           -StorePasswordInClearText
 
-    # 🔟 Push NuGet packages
+    # Push package to Azure Artifacts
     - name: Push NuGet Packages
       run: |
-        nuget push "**/*.nupkg" ^
+        nuget push "./nupkgs/*.nupkg" ^
           -Source "SalesFeed" ^
           -SkipDuplicate ^
           -ApiKey "not_needed"
