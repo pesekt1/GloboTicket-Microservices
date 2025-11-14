@@ -8,27 +8,27 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    # Checkout repository
+    # 1️⃣ Checkout repository
     - name: Checkout
       uses: actions/checkout@v4
 
-    # Install NuGet
+    # 2️⃣ Install NuGet
     - name: Install NuGet
       uses: NuGet/setup-nuget@v1
 
-    # Pack Messages project
+    # 3️⃣ Pack Messages project
     - name: Pack Messages Project
       run: |
-        dotnet pack "Sales/**/*.Messages.csproj" --configuration Release --output ./nupkgs
+        dotnet pack "Sales/GloboTicket.Sales.Messages/GloboTicket.Sales.Messages.csproj" --configuration Release --output ./nupkgs
 
-    # Upload package as artifact (optional)
+    # 4️⃣ Upload NuGet artifact (optional)
     - name: Upload NuGet Artifact
       uses: actions/upload-artifact@v4
       with:
         name: drop
         path: ./nupkgs/*.nupkg
 
-    # Add Azure Artifacts feed using PAT
+    # 5️⃣ Add Azure Artifacts source using PAT
     - name: Add Azure Artifacts Source
       run: |
         nuget sources Add ^
@@ -38,7 +38,7 @@ jobs:
           -Password "${{ secrets.AZURE_DEVOPS_PAT }}" ^
           -StorePasswordInClearText
 
-    # Push package to Azure Artifacts
+    # 6️⃣ Push NuGet package to Azure Artifacts
     - name: Push NuGet Packages
       run: |
         nuget push "./nupkgs/*.nupkg" ^
