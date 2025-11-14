@@ -1,7 +1,7 @@
 ﻿name: Manual Build and Package Sales Messages
 
 on:
-  workflow_dispatch:   # run manually
+  workflow_dispatch:   # run manually only
 
 jobs:
   build:
@@ -28,20 +28,19 @@ jobs:
         name: drop
         path: ./nupkgs/*.nupkg
 
-    # 5️⃣ Add Azure Artifacts source using PAT
+    # 5️⃣ Add Azure Artifacts source using PAT (PowerShell safe)
     - name: Add Azure Artifacts Source
       run: |
-        nuget sources Add ^
-          -Name "SalesFeed" ^
-          -Source "https://pkgs.dev.azure.com/TOMP0700/GloboTicket/_packaging/SalesFeed/nuget/v3/index.json" ^
-          -Username "any" ^
-          -Password "${{ secrets.AZURE_DEVOPS_PAT }}" ^
+        nuget sources Add -Name "SalesFeed" `
+          -Source "https://pkgs.dev.azure.com/TOMP0700/GloboTicket/_packaging/SalesFeed/nuget/v3/index.json" `
+          -Username "any" `
+          -Password "${{ secrets.AZURE_DEVOPS_PAT }}" `
           -StorePasswordInClearText
 
     # 6️⃣ Push NuGet package to Azure Artifacts
     - name: Push NuGet Packages
       run: |
-        nuget push "./nupkgs/*.nupkg" ^
-          -Source "SalesFeed" ^
-          -SkipDuplicate ^
+        nuget push "./nupkgs/*.nupkg" `
+          -Source "SalesFeed" `
+          -SkipDuplicate `
           -ApiKey "not_needed"
