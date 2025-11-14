@@ -1,25 +1,30 @@
-name: Manual Build and Package Sales
+﻿name: Manual Build and Package Sales
 
 on:
-  workflow_dispatch:   # <-- Only runs manually
+  workflow_dispatch:   # <-- Run manually only
 
 jobs:
   build:
     runs-on: windows-latest
 
     steps:
+    # 1️⃣ Checkout repo
     - name: Checkout
       uses: actions/checkout@v4
 
+    # 2️⃣ Install NuGet
     - name: Install NuGet
       uses: NuGet/setup-nuget@v1
 
+    # 3️⃣ Restore NuGet packages
     - name: Restore NuGet Packages
       run: nuget restore **/Sales.sln
 
+    # 4️⃣ Setup MSBuild
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1.3
 
+    # 5️⃣ Build solution
     - name: Build Solution
       run: |
         msbuild **/Sales.sln ^
@@ -31,31 +36,35 @@ jobs:
           /p:SkipInvalidConfigurations=true ^
           /p:PackageLocation="$(Build.ArtifactStagingDirectory)"
 
+    # 6️⃣ Run tests
     - name: Run Tests
       uses: microsoft/vstest-action@v1
       with:
         testAssembly: '**\*test*.dll'
 
+    # 7️⃣ Pack Messages project
     - name: Pack Messages Project
       run: |
         dotnet pack "Sales/**/*.Messages.csproj" --no-build --configuration Release
 
+    # 8️⃣ Upload NuGet artifacts
     - name: Upload NuGet Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: drop
         path: "**/*.nupkg"
 
-    # PAT feed authentication
+    # 9️⃣ Add Azure Artifacts source using PAT
     - name: Add Azure Artifacts Source
       run: |
         nuget sources Add ^
           -Name "SalesFeed" ^
-          -Source "https://pkgs.dev.azure.com/TOMP0700/_packaging/GloboTicket/SalesFeed/nuget/v3/index.json" ^
+          -Source "https://pkgs.dev.azure.com/TOMP0700/GloboTicket/_packaging/SalesFeed/nuget/v3/index.json" ^
           -Username "any" ^
           -Password "${{ secrets.AZURE_DEVOPS_PAT }}" ^
           -StorePasswordInClearText
 
+    # 🔟 Push NuGet packages
     - name: Push NuGet Packages
       run: |
         nuget push "**/*.nupkg" ^
