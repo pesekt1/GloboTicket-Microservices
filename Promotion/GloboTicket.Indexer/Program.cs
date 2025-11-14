@@ -60,7 +60,7 @@ namespace GloboTicket.Indexer
 
             await bus.StartAsync();
 
-            Console.WriteLine("Receiving messages. Press a key to stop.");
+            Console.WriteLine("Indexer: Receiving messages. Press a key to stop.");
             await Task.Run(() => Console.ReadKey());
 
             await bus.StopAsync();
