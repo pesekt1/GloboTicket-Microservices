@@ -23,7 +23,20 @@ namespace GloboTicket.WebSales
 
             services.AddMassTransit(x =>
             {
-                x.UsingRabbitMq();
+                x.UsingRabbitMq((context, cfg) =>
+                {
+                    var rabbitMqSection = Configuration.GetSection("RabbitMq");
+                    var host = rabbitMqSection.GetValue<string>("Host");
+                    var port = rabbitMqSection.GetValue<int>("Port");
+                    var username = rabbitMqSection.GetValue<string>("Username");
+                    var password = rabbitMqSection.GetValue<string>("Password");
+
+                    cfg.Host($"rabbitmq://{host}:{port}", h =>
+                    {
+                        h.Username(username);
+                        h.Password(password);
+                    });
+                });
             });
         }
 
