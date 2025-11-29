@@ -26,7 +26,7 @@ Access options:
 
 ### RabbitMQ container:
 
-You can access it in the browser: http://localhost:15672/
+You can access the GUI in the browser: http://localhost:15672/
 
 ### MSSQL Server container (with volumes to persist data):
 
@@ -43,10 +43,12 @@ Different environments will require different connection strings.
 
 ### Using Docker MSSQL Server container (the default for this project)
 
+We are refferencing the container service mssql-2019 defined in the docker-compose.yml file.
+
 ```json
 {
   "ConnectionStrings": {
-    "PromotionContext": "Server=localhost,1433;Database=PromotionContext;User Id=sa;Password=Pass@word1;MultipleActiveResultSets=true"
+    "PromotionContext": "Server=mssql-2019,1433;Database=PromotionContext-v1;User Id=sa;Password=Pass@word1;MultipleActiveResultSets=true"
   }
 }
 ```
@@ -75,6 +77,20 @@ If you are using a local MSSQL Server then you need to update your connection st
 
 ## MSSQL Database (for the Promotion microservice)
 
+The Promotion microservice will automatically run the migrations to create the database schema when it starts:
+
+startup.cs:
+
+```csharp
+using (var scope = app.ApplicationServices.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<PromotionContext>();
+    db.Database.Migrate();
+}
+```
+
+### Working with Entity Framework Core migrations:
+
 Install the EF command-line tools in order to work with the application database. NOTE: we need version 5 compatible with .NET 5.
 Run this command:
 
@@ -94,6 +110,8 @@ or in Visual Studio Package Manager Console:
 ```powershell
 Update-Database -Project GloboTicket.Promotion
 ```
+
+### Database ERD
 
 ![Promotion Database](PromotionDatabase.png)
 
