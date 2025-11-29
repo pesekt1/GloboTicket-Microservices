@@ -9,9 +9,11 @@ namespace GloboTicket.Emailer
     {
         static async Task Main(string[] args)
         {
+            var rabbitMqHost = Environment.GetEnvironmentVariable("RABBITMQ_HOST") ?? "masstransit-rabbitmq";
+
             var bus = Bus.Factory.CreateUsingRabbitMq(busConfig =>
             {
-                busConfig.Host("rabbitmq://localhost");
+                busConfig.Host($"rabbitmq://{rabbitMqHost}");
                 busConfig.ReceiveEndpoint("GloboTicket.Emailer", endpointConfig =>
                 {
                     endpointConfig.Handler<ShowAdded>(async context =>
@@ -21,8 +23,8 @@ namespace GloboTicket.Emailer
 
             await bus.StartAsync();
 
-            Console.WriteLine("Emailer: Receiving messages. Press a key to stop.");
-            await Task.Run(() => Console.ReadKey());
+            Console.WriteLine("Emailer: Receiving messages. Press Ctrl+C to stop.");
+            await Task.Delay(-1);
 
             await bus.StopAsync();
         }
