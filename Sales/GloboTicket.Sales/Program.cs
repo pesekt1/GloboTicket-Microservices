@@ -10,9 +10,11 @@ namespace GloboTicket.Sales
     {
         static async Task Main(string[] args)
         {
+            var rabbitMqHost = Environment.GetEnvironmentVariable("RABBITMQ_HOST") ?? "localhost";
+
             var bus = Bus.Factory.CreateUsingRabbitMq(busConfig =>
             {
-                busConfig.Host("rabbitmq://localhost");
+                busConfig.Host($"rabbitmq://{rabbitMqHost}");
                 busConfig.ReceiveEndpoint("GloboTicket.Sales", endpointConfig =>
                 {
                     endpointConfig.Handler<PurchaseTicket>(async context =>
@@ -25,8 +27,8 @@ namespace GloboTicket.Sales
 
             await bus.StartAsync();
 
-            Console.WriteLine("Sales receiving messages. Press a key to stop.");
-            await Task.Run(() => Console.ReadKey());
+            Console.WriteLine("Sales receiving messages. Press Ctrl+C to stop.");
+            await Task.Delay(-1);
 
             await bus.StopAsync();
         }
