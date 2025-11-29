@@ -123,30 +123,37 @@ Update-Database -Project GloboTicket.Promotion
 - It connects to the MSSQL database to store show information and it sends messages to RabbitMQ when a new show is scheduled.
 - It can also create, update and delete venues and acts. It will also send messages to RabbitMQ when venues or acts are created, updated or deleted.
 
-## Emailer
+### Emailer
 
 The Emailer is a mock service that stands in for a process that emails about new shows ( it only outputs to the console).
 It requires RabbitMQ to be running because it listens for messages about new shows in order to simulate sending email notifications.
 
 Start the Emailer and schedule a show in the Promotion Web application. You should see the Emailer output in the console verifying that it received the message and sent the notification.
 
-## Indexer
+### Indexer
 
 The Indexer listens for messages from the Promotion Web application about changes in the MSSQL database and it updates Elasticsearch database.
 Depends on RabbitMQ and Elasticsearch.
 
-## Web Sales
+### Web Sales
 
 The Web Sales application is the main entry point for customers to purchase tickets for shows.
 It connects to Elasticsearch to get show information and it sends messages to RabbitMQ when a customer purchases tickets for a show.
 NOTE: It is a mock application - it does not even connect to the Elasticsearch database to get show information. It only simulates the process of purchasing tickets with a mock web site.
 
-## Sales
+### Sales
 
 The Sales microservice listens for messages from the Web Sales application about ticket purchases.
 It just simulates different scenarios - successful purchase, failed purchase due to insufficient tickets, etc.
 
-## Customer Service
+### Customer Service
 
 The Customer Service microservice listens for messages from the Sales microservice about ticket purchase failures.
 It just simulates the process of handling failed ticket purchases by outputting to the console.
+
+## Custom nuget packages
+
+Some of the microservices are using custom nuget packages that are hosted in a private Azure Artifacts feed (Azure DevOps).
+To be able to restore the packages you need to add the feed to your nuget sources.
+The feed is updated by a GitHub Action workflow triggered manually when needed.
+You can find the workflow file in the .github/workflows folder - create-package.yml.
