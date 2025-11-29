@@ -17,7 +17,10 @@ namespace GloboTicket.Indexer
     {
         static async Task Main(string[] args)
         {
-            var settings = new ConnectionSettings(new Uri("http://localhost:9200"))
+            var rabbitMqHost = Environment.GetEnvironmentVariable("RABBITMQ_HOST") ?? "masstransit-rabbitmq";
+            var elasticsearchHost = Environment.GetEnvironmentVariable("ELASTICSEARCH_HOST") ?? "elasticsearch";
+
+            var settings = new ConnectionSettings(new Uri($"http://{elasticsearchHost}:9200"))
                 .DefaultMappingFor<ShowDocument>(m => m
                     .IndexName("shows")
                 )
@@ -38,7 +41,7 @@ namespace GloboTicket.Indexer
 
             var bus = Bus.Factory.CreateUsingRabbitMq(busConfig =>
             {
-                busConfig.Host("rabbitmq://localhost");
+                busConfig.Host($"rabbitmq://{rabbitMqHost}");
                 busConfig.ReceiveEndpoint("GloboTicket.Indexer", endpointConfig =>
                 {
                     endpointConfig.UseMessageRetry(r => r.Exponential(
@@ -60,8 +63,8 @@ namespace GloboTicket.Indexer
 
             await bus.StartAsync();
 
-            Console.WriteLine("Indexer: Receiving messages. Press a key to stop.");
-            await Task.Run(() => Console.ReadKey());
+            Console.WriteLine("Indexer receiving messages. Press Ctrl+C to stop.");
+            await Task.Delay(-1);
 
             await bus.StopAsync();
         }
