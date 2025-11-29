@@ -1,0 +1,128 @@
+version: '3.8'
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.9.3
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    restart: unless-stopped
+    networks:
+      - backend
+
+  rabbitmq:
+    image: masstransit/rabbitmq
+    container_name: masstransit-rabbitmq
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    restart: unless-stopped
+    networks:
+      - backend
+
+  mssql-2019:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: mssql-2019
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Pass@word1
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlvolume:/var/opt/mssql
+    restart: unless-stopped
+    networks:
+      - backend
+
+  websales:
+    build:
+      context: ./WebSales/GloboTicket.WebSales
+      dockerfile: Dockerfile
+      args:
+        AZURE_DEVOPS_USERNAME: ${AZURE_DEVOPS_USERNAME}
+        AZURE_DEVOPS_PAT: ${AZURE_DEVOPS_PAT}
+    container_name: websales
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+    networks:
+      - backend
+
+  sales:
+    build:
+      context: ./Sales
+      dockerfile: GloboTicket.Sales/Dockerfile
+    container_name: sales
+    environment:
+      - RABBITMQ_HOST=masstransit-rabbitmq
+    restart: unless-stopped
+    networks:
+      - backend
+
+  promotion:
+    build:
+      context: ./Promotion
+      dockerfile: GloboTicket.Promotion/Dockerfile
+    container_name: promotion
+    environment:
+      - RABBITMQ_HOST=masstransit-rabbitmq
+      - MSSQL_HOST=mssql-2019
+      - MSSQL_USER=sa
+      - MSSQL_PASSWORD=Pass@word1
+    ports:
+      - "8081:80"
+    restart: unless-stopped
+    networks:
+      - backend
+
+  emailer:
+    build:
+      context: ./Promotion
+      dockerfile: GloboTicket.Emailer/Dockerfile
+    container_name: emailer
+    environment:
+      - RABBITMQ_HOST=masstransit-rabbitmq
+    restart: unless-stopped
+    networks:
+      - backend
+
+  indexer:
+    build:
+      context: ./Promotion
+      dockerfile: GloboTicket.Indexer/Dockerfile
+    container_name: indexer
+    environment:
+      - RABBITMQ_HOST=masstransit-rabbitmq
+      - ELASTICSEARCH_HOST=elasticsearch
+    restart: unless-stopped
+    networks:
+      - backend
+
+  customerservice:
+    build:
+      context: ./CustomerService/GloboTicket.CustomerService
+      dockerfile: Dockerfile
+      args:
+        AZURE_DEVOPS_USERNAME: ${AZURE_DEVOPS_USERNAME}
+        AZURE_DEVOPS_PAT: ${AZURE_DEVOPS_PAT}
+    container_name: customerservice
+    environment:
+      - RABBITMQ_HOST=masstransit-rabbitmq
+    ports:
+      - "8082:80"
+    restart: unless-stopped
+    networks:
+      - backend
+
+volumes:
+  esdata:
+  sqlvolume:
+
+networks:
+  backend:
+    driver: bridge
