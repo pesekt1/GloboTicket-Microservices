@@ -157,3 +157,4 @@ Some of the microservices are using custom nuget packages that are hosted in a p
 To be able to restore the packages you need to add the feed to your nuget sources.
 The feed is updated by a GitHub Action workflow triggered manually when needed.
 You can find the workflow file in the .github/workflows folder - create-package.yml.
+It uses a GitHub Actions secret named AZURE_DEVOPS_PAT (access token provided by Azure DevOps) to authenticate to Azure DevOps. It is stored as a secret in the GitHub repository.
