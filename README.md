@@ -1,60 +1,48 @@
 # GloboTicket App - Microservices Architecture
 
 ## System architecture
+
 ![System Architecture](system_architecture.png)
 
 ## Dependencies
+
 - MSSQL Server
 - RabbitMQ
 - Elasticsearch
 
-### Execute this script in PowerShell to run all 3 containers:
-execute in powershell:
-./docker-scripts.ps1
+## Development environment setup with Docker-Compose
 
-
-Or you can run them individually as described below.
-You can use the scripts in Scripts folder to run docker containers with these dependencies.
-
-### Pull the images:
-
-https://hub.docker.com/_/microsoft-mssql-server
-https://hub.docker.com/r/masstransit/rabbitmq
-https://www.docker.elastic.co/r/elasticsearch/elasticsearch:7.9.3
-```
-docker pull mcr.microsoft.com/mssql/server:2019-latest
-docker pull masstransit/rabbitmq
-docker pull docker.elastic.co/elasticsearch/elasticsearch:7.9.3
+```dotnetcli
+docker-compose up -d --build
 ```
 
-### Run Elasticsearch container (with volumes to persist data):
-```
-docker run -d -p 9200:9200 -e "discovery.type=single-node" `
--v esdata:/usr/share/elasticsearch/data `
-docker.elastic.co/elasticsearch/elasticsearch:7.9.3
-```
-You can access it in the browser: http://localhost:9200
+### Elasticsearch UI
 
-You can also get a chrome extension: https://chrome.google.com/webstore/detail/elasticvue/hkedbapjpblbodpgbajblpnlpenaebaa?hl=en
+Access options:
 
-### Run RabbitMQ container:
-```
-docker run -d -p 15672:15672 -p 5672:5672 masstransit/rabbitmq
-```
+- Chrome extension: https://chrome.google.com/webstore/detail/elasticvue/hkedbapjpblbodpgbajblpnlpenaebaa?hl=en
+- Visit [http://localhost:9200](http://localhost:9200) in your browser to verify that it is running.
+  Then schedule a show in the Promotion Web application and query Elasticsearch at [http://localhost:9200/shows/\_search?pretty](http://localhost:9200/shows/_search?pretty).
+
+### RabbitMQ container:
+
 You can access it in the browser: http://localhost:15672/
 
+### MSSQL Server container (with volumes to persist data):
 
-### Run MSSQL Server container (with volumes to persist data):
-```
-docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=Pass@word1' -p 1433:1433 `
--v sqlvolume:/var/opt/mssql `
--d mcr.microsoft.com/mssql/server:2019-latest
-```
+You can connect to it with:
 
-## Database connection string (Promotion microservice)
+- SQL Server Management Studio or Azure Data Studio
+- DataGrip
+- Visual Studio
+- etc.
+
+## Database connection string (Promotion microservice) - different options
+
 Different environments will require different connection strings.
 
-### Using Docker MSSQL Server container
+### Using Docker MSSQL Server container (the default for this project)
+
 ```json
 {
   "ConnectionStrings": {
@@ -64,6 +52,7 @@ Different environments will require different connection strings.
 ```
 
 ### Using LocalDB (for development)
+
 ```json
 {
   "ConnectionStrings": {
@@ -71,9 +60,9 @@ Different environments will require different connection strings.
   }
 }
 ```
-You can of course name your database something else.
 
 ### Using a local MSSQL Server
+
 If you are using a local MSSQL Server then you need to update your connection string to this:
 
 ```json
@@ -84,7 +73,7 @@ If you are using a local MSSQL Server then you need to update your connection st
 }
 ```
 
-## Creating the Database (Promotion microservice)
+## MSSQL Database (for the Promotion microservice)
 
 Install the EF command-line tools in order to work with the application database. NOTE: we need version 5 compatible with .NET 5.
 Run this command:
@@ -101,42 +90,45 @@ dotnet ef database update --project GloboTicket.Promotion/
 ```
 
 or in Visual Studio Package Manager Console:
+
 ```powershell
 Update-Database -Project GloboTicket.Promotion
 ```
 
 ![Promotion Database](PromotionDatabase.png)
 
-## Running the Promotion Web Application
+## Microservices overview
 
-Start up the Promotion Web application with this command:
+### Promotion Web Application
 
-```bash
-dotnet run --project GloboTicket.Promotion
-```
+- The Promotion Web application is the main entry point for scheduling shows.
+- It connects to the MSSQL database to store show information and it sends messages to RabbitMQ when a new show is scheduled.
+- It can also create, update and delete venues and acts. It will also send messages to RabbitMQ when venues or acts are created, updated or deleted.
 
-Or run GloboTicket.Promotion from Visual Studio.
+## Emailer
 
-## Running the Emailer
+The Emailer is a mock service that stands in for a process that emails about new shows ( it only outputs to the console).
+It requires RabbitMQ to be running because it listens for messages about new shows in order to simulate sending email notifications.
 
-The Emailer is a mock service that stands in for a process that emails about new shows.
-It requires RabbitMQ to be running because it listens for messages about new shows.
+Start the Emailer and schedule a show in the Promotion Web application. You should see the Emailer output in the console verifying that it received the message and sent the notification.
 
-Start the Emailer and schedule a show in the Promotion Web application. You should see the Emailer output in the console verifying that it received the message.
-
-## Running the Indexer
+## Indexer
 
 The Indexer listens for messages from the Promotion Web application about changes in the MSSQL database and it updates Elasticsearch database.
-Depends on RabbitMQ and Elasticsearch to be running.
+Depends on RabbitMQ and Elasticsearch.
 
-## Elasticsearch
-Visit [http://localhost:9200](http://localhost:9200) in your browser to verify that it is running.
-Then schedule a show in the Promotion Web application and query Elasticsearch at [http://localhost:9200/shows/_search?pretty](http://localhost:9200/shows/_search?pretty).
+## Web Sales
 
-## Running the other services
+The Web Sales application is the main entry point for customers to purchase tickets for shows.
+It connects to Elasticsearch to get show information and it sends messages to RabbitMQ when a customer purchases tickets for a show.
+NOTE: It is a mock application - it does not even connect to the Elasticsearch database to get show information. It only simulates the process of purchasing tickets with a mock web site.
 
-```bash
-dotnet run --project GloboTicket.Sales
-dotnet run --project GloboTicket.CustomerService
-dotnet run --project GloboTicket.WebSales
-```
+## Sales
+
+The Sales microservice listens for messages from the Web Sales application about ticket purchases.
+It just simulates different scenarios - successful purchase, failed purchase due to insufficient tickets, etc.
+
+## Customer Service
+
+The Customer Service microservice listens for messages from the Sales microservice about ticket purchase failures.
+It just simulates the process of handling failed ticket purchases by outputting to the console.
